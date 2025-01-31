@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "An automated bot for interacting with the Naoris Protocol network.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
