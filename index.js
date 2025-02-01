@@ -15,7 +15,7 @@ class DeviceHeartbeatBot {
             testnetApi: 'https://naorisprotocol.network/testnet-api/api/testnet'
         };
         this.uptimeMinutes = 0;
-        this.deviceHash = 1703463647;
+        this.deviceHash = account.deviceHash;
         this.toggleState = true;
         this.whitelistedUrls = ["naorisprotocol.network", "google.com"];
         this.isInstalled = true;
