@@ -5,10 +5,12 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import chalk from 'chalk';
 import banner from './utils/banner.js';
+import getUserAgents from './utils/user_agent.js'
 
 class DeviceHeartbeatBot {
-    constructor(account, proxy = null) {
+    constructor(account, userAgent, proxy = null) {
         this.account = account;
+        this.userAgent = userAgent;
         this.proxy = proxy;
         this.baseUrls = {
             secApi: 'https://naorisprotocol.network/sec-api/api',
@@ -19,7 +21,7 @@ class DeviceHeartbeatBot {
         this.toggleState = true;
         this.whitelistedUrls = ["naorisprotocol.network", "google.com"];
         this.isInstalled = true;
-        
+
         // Log proxy information if used
         if (this.proxy) {
             console.log(chalk.blue(`[ðŸŒ] Using Proxy: ${this.proxy}`));
@@ -50,6 +52,7 @@ class DeviceHeartbeatBot {
         }
     }
 
+
     getAxiosConfig() {
         const config = {
             headers: {
@@ -58,7 +61,7 @@ class DeviceHeartbeatBot {
                 'Accept': '*/*',
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Origin': 'chrome-extension://cpikalnagknmlfhnilhfelifgbollmmp',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+                'User-Agent': this.userAgent,
                 'sec-fetch-dest': 'empty',
                 'sec-fetch-mode': 'cors',
                 'sec-fetch-site': 'none',
@@ -67,13 +70,13 @@ class DeviceHeartbeatBot {
         };
 
         if (this.proxy) {
-            const proxyUrl = this.proxy.startsWith('http://') || 
-                           this.proxy.startsWith('socks4://') || 
-                           this.proxy.startsWith('socks5://') ? 
-                           this.proxy : `http://${this.proxy}`;
+            const proxyUrl = this.proxy.startsWith('http://') ||
+                this.proxy.startsWith('socks4://') ||
+                this.proxy.startsWith('socks5://') ?
+                this.proxy : `http://${this.proxy}`;
 
-            config.httpsAgent = proxyUrl.startsWith('socks') ? 
-                new SocksProxyAgent(proxyUrl) : 
+            config.httpsAgent = proxyUrl.startsWith('socks') ?
+                new SocksProxyAgent(proxyUrl) :
                 new HttpsProxyAgent(proxyUrl);
         }
 
@@ -94,7 +97,7 @@ class DeviceHeartbeatBot {
                 payload,
                 this.getAxiosConfig()
             );
-            
+
             this.toggleState = state === "ON";
             this.logSuccess('Device Toggle', response.data);
             console.log(`Toggle state (${state}) sent to backend.`);
@@ -124,14 +127,14 @@ class DeviceHeartbeatBot {
                 payload,
                 this.getAxiosConfig()
             );
-            
+
             console.log("Heartbeat sent to backend.");
             this.logSuccess('Heartbeat', response.data);
             return response.data;
         } catch (error) {
             this.logError('Heartbeat Error', error);
-         //   throw error;
-         // disable throw error for keep this bot running
+            //   throw error;
+            // disable throw error for keep this bot running
         }
     }
 
@@ -166,7 +169,7 @@ class DeviceHeartbeatBot {
             // Initial toggle ON
             await this.toggleDevice("ON");
             console.log("Installed script executed successfully!");
-            
+
             // Initial heartbeat
             await this.sendHeartbeat();
 
@@ -175,7 +178,7 @@ class DeviceHeartbeatBot {
                 try {
                     cycleCount++;
                     this.uptimeMinutes++;
-                    
+
                     // Simulate service worker wake-up every 5 minutes
                     if (cycleCount % 5 === 0) {
                         console.log("Service worker wake-up alarm triggered.");
@@ -185,7 +188,7 @@ class DeviceHeartbeatBot {
                         await this.toggleDevice("ON");
                         console.log("Installed script executed successfully!");
                     }
-                    
+
                     await this.sendHeartbeat();
                     const walletDetails = await this.getWalletDetails();
                     console.log(chalk.green(`[${new Date().toLocaleTimeString()}] Minute ${this.uptimeMinutes} completed`));
@@ -215,14 +218,14 @@ class DeviceHeartbeatBot {
 
     logError(action, error) {
         const proxyInfo = this.proxy ? chalk.blue(` [Proxy: ${this.proxy}]`) : '';
-        console.error(chalk.red(`[âœ—] ${action} Error:${proxyInfo}`), 
+        console.error(chalk.red(`[âœ—] ${action} Error:${proxyInfo}`),
             error.response ? error.response.data : error.message);
     }
 
     logWalletDetails(details) {
         const earnings = this.uptimeMinutes * (details.activeRatePerMinute || 0);
         const proxyInfo = this.proxy ? chalk.blue(`\n  Proxy: ${this.proxy}`) : '';
-        
+
         console.log('\n' + chalk.white(`ðŸ“Š Wallet Details for ${this.account.walletAddress}:`));
         console.log(chalk.cyan(`  Total Earnings: ${details.totalEarnings}`));
         console.log(chalk.cyan(`  Today's Earnings: ${details.todayEarnings}`));
@@ -240,10 +243,10 @@ async function main() {
         console.log(banner());
         const accounts = await DeviceHeartbeatBot.loadAccounts();
         const proxies = await DeviceHeartbeatBot.loadProxies();
-
+        const userAgents = await getUserAgents();
         const bots = accounts.map((account, index) => {
             const proxy = proxies[index % proxies.length];
-            return new DeviceHeartbeatBot(account, proxy);
+            return new DeviceHeartbeatBot(account, userAgents[index % userAgents.length], proxy);
         });
 
         for (const bot of bots) {
