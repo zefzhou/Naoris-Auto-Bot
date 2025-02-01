@@ -130,7 +130,8 @@ class DeviceHeartbeatBot {
             return response.data;
         } catch (error) {
             this.logError('Heartbeat Error', error);
-            throw error;
+         //   throw error;
+         // disable throw error for keep this bot running
         }
     }
 
