@@ -61,3 +61,44 @@ Create a new branch for your feature or bugfix.
 Commit your changes.
 
 Push your branch and open a pull request.
+
+
+
+## `new` How to run with PM2
+before run with PM2 make sure your bots run well, so we can try this PM2
+
+install PM2 as global, so you won't install again if you use new bots
+```bash
+npm install pm2 -g
+```
+
+once installed you can run with
+```bash
+npm run pm2
+```
+
+
+<hr>
+
+## __cheatsheet about PM2__
+
+- *Check how many bots running*
+```bash
+pm2 list
+```
+- *Check logs with specific running bots*
+```bash
+pm2 logs [id]
+```
+- *Stopping bots from pm2*
+```bash
+pm2 stop [id]
+```
+- *Restarting bots*
+```bash
+pm2 reload [id]
+```
+- *Delete running bots*
+```bash
+pm2 detele [id]
+```
